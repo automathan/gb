@@ -1,9 +1,15 @@
-#include "alu.h"
-
+#include "cpu.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <string>
+
+/*
+    The emulator class can be seen as the
+    actual Game Boy unit, consisting of
+    different circuits/components that
+    have different responsibilities
+*/
 
 class emulator{
 private:
@@ -17,7 +23,7 @@ private:
     	char* cartridge;
     };
 
-    component::alu* alu;
+    component::cpu* cpu;
     ROM* loadROM(const char*); // TODO move to romloader
 public:
     //emulator();

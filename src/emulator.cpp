@@ -83,6 +83,8 @@ void emulator::play(const char* path){
 		std::cout << "name: " << rom->name << std::endl;
 		std::cout << "size: 0x" << std::hex << rom->size << std::endl;
 	}
+
+	cpu = new component::cpu(memory, registers, F);
 }
 
 /*

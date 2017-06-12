@@ -1,6 +1,12 @@
 #ifndef ALU_DEF
 #define ALU_DEF
 
+/*
+    The ALU component is responsible
+    for carrying out aritmetics and logical
+    instructions received by the CPU
+*/
+
 namespace component{
     class alu {
     private:

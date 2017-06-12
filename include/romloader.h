@@ -1,3 +1,6 @@
-class romloader{
-    
-};
+
+namespace component{
+    class romloader{
+
+    };
+}
