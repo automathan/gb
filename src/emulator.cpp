@@ -62,6 +62,7 @@ emulator::ROM* emulator::loadROM(const char* path){ // TODO move to romloader
 }
 
 void emulator::play(const char* path){
+    emit debug("testtt");
 	// allocate memory
 	char* memory = new char[0x8000];
 	char* registers = new char[7];
@@ -79,10 +80,14 @@ void emulator::play(const char* path){
 	ROM* rom = loadROM(path);
 
 	if(rom){
-		std::cout << "ROM loaded!" << std::endl;
-		std::cout << "name: " << rom->name << std::endl;
-		std::cout << "size: 0x" << std::hex << rom->size << std::endl;
-	}
+
+        emit debug("successfully loaded ROM");
+        //std::cout << "ROM loaded!" << std::endl;
+        //std::cout << "name: " << rom->name << std::endl;
+        //std::cout << "size: 0x" << std::hex << rom->size << std::endl;
+    }else{
+        emit debug("failed to load ROM");
+    }
 
 	cpu = new component::cpu(memory, registers, F);
 }

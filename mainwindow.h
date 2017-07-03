@@ -19,6 +19,8 @@ public:
 private:
     Ui::MainWindow *ui;
     emulator* emu;
+public slots:
+    void consolePrint(const char* str);
 };
 
 #endif // MAINWINDOW_H
