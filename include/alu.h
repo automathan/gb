@@ -20,7 +20,7 @@ namespace component{
         void xor_reg_to_A(int r);
         void inc_reg(int r);
     public:
-        void execute(int opcode);
+        bool execute(int opcode);
         alu(char* memory,char* registers, bool* flags);
     };
 }

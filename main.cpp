@@ -1,7 +1,11 @@
-#include "include/emulator.h"
-#include <iostream>
+#include "mainwindow.h"
+#include <QApplication>
 
-int main(){
-    emulator emu;
-    emu.play("roms/tetris.gb");
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+
+    return a.exec();
 }

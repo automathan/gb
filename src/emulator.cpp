@@ -57,7 +57,7 @@ emulator::ROM* emulator::loadROM(const char* path){ // TODO move to romloader
 			name += cartridge[i++];
 
 		return new ROM {name, length, cartridge};
-	}
+    }
 	return nullptr;
 }
 

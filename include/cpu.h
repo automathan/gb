@@ -14,6 +14,7 @@ namespace component{
         char* memory;
         char* registers;
         bool* F;
+        unsigned short pc; // internal register
 
         component::alu* alu;
     public:
