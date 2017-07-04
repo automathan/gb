@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include "include/emulator.h"
+#include <QImage>
+#include <QPixmap>
 
 namespace Ui {
 class MainWindow;
@@ -19,8 +21,10 @@ public:
 private:
     Ui::MainWindow *ui;
     emulator* emu;
+    QImage* lcdImage;
 public slots:
     void consolePrint(const char* str);
+    void updateLCD();
 };
 
 #endif // MAINWINDOW_H

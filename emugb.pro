@@ -37,7 +37,8 @@ HEADERS += \
     include/alu.h \
     include/cpu.h \
     include/emulator.h \
-    include/romloader.h
+    include/romloader.h \
+    include/gpu.h
 
 FORMS += \
         mainwindow.ui

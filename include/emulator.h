@@ -1,9 +1,15 @@
+#ifndef EMU_DEF
+#define EMU_DEF
+
 #include "cpu.h"
+#include "gpu.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <vector>
 #include <QObject>
+
 /*
     The emulator class can be seen as the
     actual Game Boy unit, consisting of
@@ -25,9 +31,14 @@ private:
     };
 
     component::cpu* cpu;
+    component::gpu* gpu;
+
     ROM* loadROM(const char*); // TODO move to romloader
 public:
     void play(const char*);
+    std::vector<unsigned char> getFrame();
 signals:
     void debug(const char*);
 };
+
+#endif

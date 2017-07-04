@@ -1,7 +1,9 @@
 // to be passed through constructor
-unsigned char* RAM;
+#include "../include/gpu.h"
 
-int LCD[256][256];
+using namespace component;
+
+/*
 
 struct sprattr{
     int x, y, id, flags;
@@ -27,7 +29,18 @@ void draw_background(){
 	}
     }
 }
+*/
+gpu::gpu(char* mem){
+    this->memory = mem;
+}
 
+std::vector<unsigned char> gpu::getFrame(){
+    std::vector<unsigned char> LCD(256 * 256);
+    for(int y = 0; y < 256; ++y)
+        for(int x = 0; x < 256; ++x)
+            LCD[256 * y + x] = (x / 4) % 3;
+    return LCD;
+}
     
 
 

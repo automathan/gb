@@ -5,6 +5,7 @@
 #include <string>
 #include "../include/emulator.h"
 #include "../include/alu.h"
+#include "../include/gpu.h"
 
 enum flags {Z_FLAG, N_FLAG, H_FLAG, C_FLAG};
 enum reg_index {A, B, C, D, E, H, L};
@@ -90,6 +91,13 @@ void emulator::play(const char* path){
     }
 
 	cpu = new component::cpu(memory, registers, F);
+    gpu = new component::gpu(memory);
+
+}
+
+
+std::vector<unsigned char> emulator::getFrame(){
+    return gpu->getFrame();
 }
 
 /*
