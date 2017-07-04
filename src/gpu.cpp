@@ -30,7 +30,7 @@ void draw_background(){
     }
 }
 */
-gpu::gpu(char* mem){
+gpu::gpu(unsigned char* mem){
     this->memory = mem;
 }
 

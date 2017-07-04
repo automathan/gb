@@ -63,11 +63,11 @@ emulator::ROM* emulator::loadROM(const char* path){ // TODO move to romloader
 }
 
 void emulator::play(const char* path){
-    emit debug("testtt");
+    emit debug("initializing...");
 	// allocate memory
-	char* memory = new char[0x8000];
-	char* registers = new char[7];
-	bool* F = new bool[4];
+    memory = new unsigned char[0x10000];
+    registers = new unsigned char[7];
+    F = new bool[4];
 
 	// initial register values
 	registers[A] = 0x01;
@@ -81,8 +81,9 @@ void emulator::play(const char* path){
 	ROM* rom = loadROM(path);
 
 	if(rom){
-
         emit debug("successfully loaded ROM");
+        emit debug("rom name = " + QString(rom->name.c_str()));
+        memcpy(memory, rom->cartridge, 0x8000);
         //std::cout << "ROM loaded!" << std::endl;
         //std::cout << "name: " << rom->name << std::endl;
         //std::cout << "size: 0x" << std::hex << rom->size << std::endl;
@@ -90,11 +91,25 @@ void emulator::play(const char* path){
         emit debug("failed to load ROM");
     }
 
-	cpu = new component::cpu(memory, registers, F);
+    cpu = new component::cpu(memory, registers, F);
     gpu = new component::gpu(memory);
 
 }
 
+void emulator::step(){
+    auto pc = cpu->getPC();
+    cpu->step();
+    if(memory[0])
+        emit debug(QString::number(pc,16) + ": unimplemented operation: " + QString::number(memory[0],16));
+    else
+        emit debug(QString::number(pc,16) + ": valid operation: " + QString::number(memory[1],16));
+    if(memory[2]){
+        if(memory[2] == 1)
+            emit debug("param = " + QString::number(memory[3],16));
+        if(memory[2] == 2)
+            emit debug("params = " + QString::number(memory[3],16) + ", " + QString::number(memory[4],16));
+    }
+}
 
 std::vector<unsigned char> emulator::getFrame(){
     return gpu->getFrame();

@@ -5,7 +5,7 @@ enum reg_index {A, B, C, D, E, H, L};
 
 using namespace component;
 
-alu::alu(char* memory,char* registers, bool* flags){
+alu::alu(unsigned char* memory,unsigned char* registers, bool* flags){
 	this->memory = memory;
 	this->registers = registers;
 	this->F = flags;

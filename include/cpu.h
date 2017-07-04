@@ -11,15 +11,17 @@
 namespace component{
     class cpu {
     private:
-        char* memory;
-        char* registers;
+        unsigned char* memory;
+        unsigned char* registers;
         bool* F;
-        unsigned short pc; // internal register
+        unsigned short pc;
 
         component::alu* alu;
-    public:
         void execute(int opcode);
-        cpu(char* memory,char* registers, bool* flags);
+    public:
+        unsigned short getPC();
+        void step();
+        cpu(unsigned char* memory, unsigned char* registers, bool* flags);
     };
 }
 

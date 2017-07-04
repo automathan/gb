@@ -10,8 +10,8 @@
 namespace component{
     class alu {
     private:
-        char* memory;
-        char* registers;
+        unsigned char* memory;
+        unsigned char* registers;
         bool* F;
 
         void add_reg_to_A(int r, bool adc);
@@ -21,7 +21,7 @@ namespace component{
         void inc_reg(int r);
     public:
         bool execute(int opcode);
-        alu(char* memory,char* registers, bool* flags);
+        alu(unsigned char* memory,unsigned char* registers, bool* flags);
     };
 }
 

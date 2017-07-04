@@ -7,7 +7,7 @@
 namespace component{
     class gpu {
     private:
-        char* memory;
+        unsigned char* memory;
         //char* registers;
         //bool* F;
         //unsigned short pc; // internal register
@@ -16,7 +16,7 @@ namespace component{
     public:
         //void execute(int opcode);
         std::vector<unsigned char> getFrame();
-        gpu(char*/*, MainWindow**/);
+        gpu(unsigned char*/*, MainWindow**/);
     };
 }
 

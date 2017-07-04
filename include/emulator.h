@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <QObject>
+#include <QString>
 
 /*
     The emulator class can be seen as the
@@ -20,8 +21,8 @@
 class emulator : public QObject{
     Q_OBJECT
 private:
-    char* memory;
-    char* registers;
+    unsigned char* memory;
+    unsigned char* registers;
     bool* F;
 
     struct ROM{
@@ -35,10 +36,11 @@ private:
 
     ROM* loadROM(const char*); // TODO move to romloader
 public:
+    void step();
     void play(const char*);
     std::vector<unsigned char> getFrame();
 signals:
-    void debug(const char*);
+    void debug(QString);
 };
 
 #endif

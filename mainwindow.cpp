@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     emu = new emulator();
-    connect(emu, SIGNAL(debug(const char*)), SLOT(consolePrint(const char*)));
+    connect(emu, SIGNAL(debug(QString)), SLOT(consolePrint(QString)));
     emu->play("/home/jonathaj/Downloads/Tetris (World)/Tetris (World).gb");
 
     lcdImage = new QImage(256, 256, QImage::Format_RGB32);
@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     */
 
     connect(ui->refreshButton,SIGNAL(clicked(bool)),SLOT(updateLCD()));
+    connect(ui->stepButton,SIGNAL(clicked(bool)),SLOT(stepCPU()));
 }
 
 MainWindow::~MainWindow()
@@ -29,8 +30,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::consolePrint(const char* str){
+void MainWindow::consolePrint(QString str){
     ui->consoleEdit->append(str);
+}
+
+void MainWindow::stepCPU(){
+    emu->step();
 }
 
 void MainWindow::updateLCD(){

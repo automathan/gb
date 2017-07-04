@@ -23,8 +23,9 @@ private:
     emulator* emu;
     QImage* lcdImage;
 public slots:
-    void consolePrint(const char* str);
+    void consolePrint(QString);
     void updateLCD();
+    void stepCPU();
 };
 
 #endif // MAINWINDOW_H
