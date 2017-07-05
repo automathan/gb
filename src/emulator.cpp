@@ -65,7 +65,7 @@ emulator::ROM* emulator::loadROM(const char* path){ // TODO move to romloader
 void emulator::play(const char* path){
     emit debug("initializing...");
 	// allocate memory
-    memory = new unsigned char[0x10000];
+    memory = (unsigned char*)malloc(0x10000);
     registers = new unsigned char[7];
     F = new bool[4];
 
@@ -111,8 +111,9 @@ void emulator::step(){
     }
 }
 
-std::vector<unsigned char> emulator::getFrame(){
-    return gpu->getFrame();
+std::vector<unsigned char> emulator::getFrame(int step){
+    emit debug("visualizing ROM with offset " + QString::number(gpu->getTO()));
+    return gpu->getFrame(step);
 }
 
 /*

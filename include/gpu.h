@@ -8,6 +8,7 @@ namespace component{
     class gpu {
     private:
         unsigned char* memory;
+        int testoffset = 0x06;
         //char* registers;
         //bool* F;
         //unsigned short pc; // internal register
@@ -15,7 +16,8 @@ namespace component{
         //MainWindow* window;
     public:
         //void execute(int opcode);
-        std::vector<unsigned char> getFrame();
+        int getTO();
+        std::vector<unsigned char> getFrame(int);
         gpu(unsigned char*/*, MainWindow**/);
     };
 }

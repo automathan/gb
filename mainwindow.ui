@@ -79,6 +79,25 @@ p, li { white-space: pre-wrap; }
      <string>step</string>
     </property>
    </widget>
+   <widget class="QSpinBox" name="spinBox">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>280</y>
+      <width>81</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>256</number>
+    </property>
+    <property name="singleStep">
+     <number>16</number>
+    </property>
+    <property name="value">
+     <number>16</number>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

@@ -33,12 +33,30 @@ void draw_background(){
 gpu::gpu(unsigned char* mem){
     this->memory = mem;
 }
+int gpu::getTO(){
+    return testoffset;
+}
 
-std::vector<unsigned char> gpu::getFrame(){
+std::vector<unsigned char> gpu::getFrame(int step){
+    std::vector<unsigned char> LCD(256 * 256);
+
+    // one tile = 8x8px, 16 bytes
+    for(int i = 0; i < 32 * 32; ++i){ // for each tile
+        int offset = testoffset + i * 16;
+        for(int j = 0; j < 8; ++j){ // j = vertical line
+            int lsb = memory[offset + 2 * j], msb = memory[offset + 2 * j + 1];
+            for(int k = 0; k < 8; ++k){ // k = pixel
+                LCD[256 * ((i / 32) * 8 + j) + ((i % 32) * 8) + k] = ((msb & (0x1 << (7 - k)) ? 2 : 0) + (lsb & (0x1 << (7 - k)) ? 1 : 0)) & 0x3;
+            }
+        }
+    }
+    testoffset+=step;
+    /*
     std::vector<unsigned char> LCD(256 * 256);
     for(int y = 0; y < 256; ++y)
         for(int x = 0; x < 256; ++x)
             LCD[256 * y + x] = (x / 4) % 3;
+            */
     return LCD;
 }
     

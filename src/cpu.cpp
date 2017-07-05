@@ -2,6 +2,7 @@
 
 using namespace component;
 enum reg_index {A, B, C, D, E, H, L};
+enum flags {Z_FLAG, N_FLAG, H_FLAG, C_FLAG};
 
 cpu::cpu(unsigned char* memory, unsigned char* registers, bool* flags){
     pc = 0x100;
@@ -32,6 +33,7 @@ void cpu::execute(int opcode){
     switch(opcode){
     case 0x05:{ // dec B
         registers[B]--;
+
         pc++;
         break;
     }case 0x06:{ // load n into B
@@ -49,10 +51,33 @@ void cpu::execute(int opcode){
         memory[(((unsigned short)registers[E]) << 8) | registers[D]] = registers[A];
         ++pc;
         break;
+    }case 0x1e:{ // load n into E
+        registers[E] = memory[pc + 1];
+
+        memory[2] = 1;
+        memory[3] = memory[pc + 1];
+
+        pc += 2;
+        break;
+    }case 0x20:{ // jump n instructions forward if Z is true
+        memory[2] = 1;
+        memory[3] = memory[pc + 1];
+
+        if(F[Z_FLAG])
+            pc += memory[pc + 1];
+        else
+            pc += 2;
+        break;
     }case 0x21:{ // put value nn into HL
         registers[H] = memory[pc + 1];
         registers[L] = memory[pc + 2];
+
+        memory[2] = 2;
+        memory[3] = memory[pc + 1];
+        memory[4] = memory[pc + 2];
+
         pc += 3;
+        break;
     }case 0x23:{ // HL++
         registers[L]++;
         if(!registers[L])
@@ -74,6 +99,19 @@ void cpu::execute(int opcode){
         break;
     }case 0xc3:{ // JP nn
         pc = (((unsigned short)memory[pc + 2]) << 8) | memory[pc + 1];
+
+        memory[2] = 2;
+        memory[3] = memory[pc + 1];
+        memory[4] = memory[pc + 2];
+
+        break;
+    }case 0xe0:{ // put value A into memory location 0xff00 + n
+        memory[0xff00 + memory[pc + 1]] = registers[A];
+
+        memory[2] = 1;
+        memory[3] = memory[pc + 1];
+
+        pc += 2;
         break;
     }default:
         memory[0] = opcode;

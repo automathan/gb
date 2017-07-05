@@ -39,10 +39,10 @@ void MainWindow::stepCPU(){
 }
 
 void MainWindow::updateLCD(){
-    uint colors[3] = {0xff343434,0xff777777,0xffaaaaaa};
+    uint colors[4] = {0xff000000,0xff343434,0xff777777,0xffaaaaaa};
 
-    ui->consoleEdit->append("updating LCD...");
-    auto frame = emu->getFrame();
+    //ui->consoleEdit->append("updating LCD...");
+    auto frame = emu->getFrame(ui->spinBox->value());
 
     QRgb* imgdata = (QRgb*)lcdImage->bits();
     for(int i = 0; i < 256 * 256; ++i)

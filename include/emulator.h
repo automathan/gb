@@ -38,7 +38,7 @@ private:
 public:
     void step();
     void play(const char*);
-    std::vector<unsigned char> getFrame();
+    std::vector<unsigned char> getFrame(int);
 signals:
     void debug(QString);
 };
