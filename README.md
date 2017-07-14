@@ -7,10 +7,10 @@ I have realised that writing an emulator is one of the most effective ways to ge
 dirty with low level/limited hardware programming. I am learning stuff on the go here, so things might change drastically over time.
 
 # Current state:
-- More than half of the arithmetic operations are implemented and mapped
-- Ugly temporary jumping functionality so I can trace ROM programs by iteration
-- Somewhat of a framework/skeleton for generalization of most operations
-- No work done in relation to graphics yet
+- More than half of the arithmetic operations are implemented and mapped.
+- Ugly temporary jumping functionality so I can trace ROM programs by iteration.
+- Somewhat of a framework/skeleton for generalization of most operations.
+- Graphic display is done, vram is empty so when the processor works fine, everything should.
 
 # Features for version 1.0
 - Should run all ROMs without fatalities
@@ -19,3 +19,5 @@ dirty with low level/limited hardware programming. I am learning stuff on the go
 
 # Beyond version 1.0
 - Game Boy Color ROM support
+- Scripting & running game manipulation
+- Streaming (simply because it's so easy in this situation)
