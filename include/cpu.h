@@ -20,6 +20,7 @@ namespace component{
         void execute(int opcode);
     public:
         unsigned short getPC();
+        unsigned char* getRegs();
         void step();
         cpu(unsigned char* memory, unsigned char* registers, bool* flags);
     };

@@ -10,6 +10,8 @@ namespace Ui {
 class MainWindow;
 }
 
+enum reg_index {A, B, C, D, E, H, L, F};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT

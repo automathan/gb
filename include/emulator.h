@@ -37,6 +37,7 @@ private:
     ROM* loadROM(const char*); // TODO move to romloader
 public:
     void step();
+    unsigned char* getRegs();
     void play(const char*);
     std::vector<unsigned char> getFrame(int);
 signals:

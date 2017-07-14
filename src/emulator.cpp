@@ -96,6 +96,10 @@ void emulator::play(const char* path){
 
 }
 
+unsigned char* emulator::getRegs(){
+    return cpu->getRegs();
+}
+
 void emulator::step(){
     auto pc = cpu->getPC();
     cpu->step();
@@ -103,12 +107,6 @@ void emulator::step(){
         emit debug(QString::number(pc,16) + ": unimplemented operation: " + QString::number(memory[0],16));
     else
         emit debug(QString::number(pc,16) + ": valid operation: " + QString::number(memory[1],16));
-    if(memory[2]){
-        if(memory[2] == 1)
-            emit debug("param = " + QString::number(memory[3],16));
-        if(memory[2] == 2)
-            emit debug("params = " + QString::number(memory[3],16) + ", " + QString::number(memory[4],16));
-    }
 }
 
 std::vector<unsigned char> emulator::getFrame(int step){

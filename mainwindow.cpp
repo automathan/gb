@@ -36,6 +36,17 @@ void MainWindow::consolePrint(QString str){
 
 void MainWindow::stepCPU(){
     emu->step();
+    auto regs = emu->getRegs();
+
+    ui->regview_f->setText("0x" + QString("%1").arg(regs[F], 2, 16, QChar('0')));
+    ui->regview_c->setText("0x" + QString("%1").arg(regs[C], 2, 16, QChar('0')));
+    ui->regview_e->setText("0x" + QString("%1").arg(regs[E], 2, 16, QChar('0')));
+    ui->regview_l->setText("0x" + QString("%1").arg(regs[L], 2, 16, QChar('0')));
+
+    ui->regview_a->setText("0x" + QString("%1").arg(regs[A], 2, 16, QChar('0')));
+    ui->regview_b->setText("0x" + QString("%1").arg(regs[B], 2, 16, QChar('0')));
+    ui->regview_d->setText("0x" + QString("%1").arg(regs[D], 2, 16, QChar('0')));
+    ui->regview_h->setText("0x" + QString("%1").arg(regs[H], 2, 16, QChar('0')));
 }
 
 void MainWindow::updateLCD(){
