@@ -11,6 +11,13 @@
 #include <QObject>
 #include <QString>
 
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <iomanip>
+#include <string>
+#include "../include/gpu.h"
+
 /*
     The emulator class can be seen as the
     actual Game Boy unit, consisting of
@@ -23,12 +30,11 @@ class emulator : public QObject{
 private:
     unsigned char* memory;
     unsigned char* registers;
-    bool* F;
 
     struct ROM{
     	std::string name;
     	int size;
-    	char* cartridge;
+        unsigned char* cartridge;
     };
 
     component::cpu* cpu;

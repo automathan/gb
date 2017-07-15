@@ -6,6 +6,8 @@ as a reference for others who want to do the same. After working on this for onl
 I have realised that writing an emulator is one of the most effective ways to get your hands
 dirty with low level/limited hardware programming. I am learning stuff on the go here, so things might change drastically over time.
 
+After working on this for a while I realize that I am writing a soft gb debugger as well, and it would be a waste to throw that away when the emulator works properly, so I guess this is becoming more of a open source no$gba-ish thing. 
+
 # Current state:
 - More than half of the arithmetic operations are implemented and mapped.
 - Ugly temporary jumping functionality so I can trace ROM programs by iteration.

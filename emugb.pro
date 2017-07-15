@@ -26,7 +26,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    src/alu.cpp \
     src/cpu.cpp \
     src/emulator.cpp \
     src/gpu.cpp \
@@ -34,7 +33,6 @@ SOURCES += \
 
 HEADERS += \
         mainwindow.h \
-    include/alu.h \
     include/cpu.h \
     include/emulator.h \
     include/romloader.h \
