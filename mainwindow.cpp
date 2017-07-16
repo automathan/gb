@@ -47,6 +47,11 @@ void MainWindow::stepCPU(){
     ui->regview_b->setText("0x" + QString("%1").arg(regs[B], 2, 16, QChar('0')));
     ui->regview_d->setText("0x" + QString("%1").arg(regs[D], 2, 16, QChar('0')));
     ui->regview_h->setText("0x" + QString("%1").arg(regs[H], 2, 16, QChar('0')));
+
+    ui->cb_flag_z->setChecked(regs[F] & 0x80);
+    ui->cb_flag_n->setChecked(regs[F] & 0x40);
+    ui->cb_flag_h->setChecked(regs[F] & 0x20);
+    ui->cb_flag_c->setChecked(regs[F] & 0x10);
 }
 
 void MainWindow::updateLCD(){

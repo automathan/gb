@@ -1,6 +1,0 @@
-
-namespace component{
-    class romloader{
-
-    };
-}

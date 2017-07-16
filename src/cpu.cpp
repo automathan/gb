@@ -2,7 +2,6 @@
 
 using namespace component;
 
-typedef unsigned char byte;
 enum reg_index {A, B, C, D, E, H, L, F};
 enum flags {
     Z_FLAG = 0x80,
@@ -21,6 +20,30 @@ cpu::cpu(byte* mem, byte* reg){
 void cpu::step(){
     execute(mem[pc]);
     ++pc; // REMEMBER TO SUBTRACT 1 FROM JUMPS TO COMPENSATE FOR THIS
+}
+
+void cpu::z80_cp(byte a, byte b){
+    reg[F] = (a == b ? Z_FLAG : 0x00) | N_FLAG
+            | ((a & 0xf) < (b & 0xf) ? H_FLAG : 0x00)
+            | (a < b ? C_FLAG : 0x00);
+}
+
+byte cpu::z80_xor(byte a, byte b){
+    byte tmp = a ^ b;
+    reg[F] = tmp ? 0x00 : Z_FLAG;
+    return tmp;
+}
+
+byte cpu::z80_or(byte a, byte b){
+    byte tmp = a | b;
+    reg[F] = tmp ? 0x00 : Z_FLAG;
+    return tmp;
+}
+
+byte cpu::z80_and(byte a, byte b){
+    byte tmp = a & b;
+    reg[F] = (tmp ? 0x00 : Z_FLAG) | H_FLAG;
+    return tmp;
 }
 
 unsigned short cpu::pack(byte lsby, byte msby){ // packs two bytes into a short, the arguments are ordered big-endian, but packed little-endian
@@ -417,128 +440,162 @@ void cpu::execute(int opcode){
     } // DONE
 
     case 0xa0:{ // A = A AND B
-        reg[A] &= reg[B];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[B]);
         break;
     } // DONE
 
     case 0xa1:{ // A = A AND C
-        reg[A] &= reg[C];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[C]);
         break;
     } // DONE
 
     case 0xa2:{ // A = A AND D
-        reg[A] &= reg[D];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[D]);
         break;
     } // DONE
 
     case 0xa3:{ // A = A AND E
-        reg[A] &= reg[E];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[E]);
         break;
     } // DONE
 
     case 0xa4:{ // A = A AND H
-        reg[A] &= reg[H];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[H]);
         break;
     } // DONE
 
     case 0xa5:{ // A = A AND L
-        reg[A] &= reg[L];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[L]);
+        break;
+    } // DONE
+
+    case 0xa6:{ // A = A AND (HL)
+        reg[A] = z80_and(reg[A], mem[pack(reg[H], reg[L])]);
         break;
     } // DONE
 
     case 0xa7:{ // A = A AND A
-        reg[A] &= reg[A];
-        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] = z80_and(reg[A], reg[A]);
         break;
     } // DONE
 
     case 0xa8:{ // A = A XOR B
-        reg[A] ^= reg[B];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_xor(reg[A], reg[B]);
         break;
     } // DONE
 
     case 0xa9:{ // A = A XOR C
-        reg[A] ^= reg[C];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_xor(reg[A], reg[C]);
         break;
     } // DONE
 
     case 0xaa:{ // A = A XOR D
-        reg[A] ^= reg[D];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_xor(reg[A], reg[D]);
         break;
     } // DONE
 
     case 0xab:{ // A = A XOR E
-        reg[A] ^= reg[E];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_xor(reg[A], reg[E]);
         break;
     } // DONE
 
     case 0xac:{ // A = A XOR H
-        reg[A] ^= reg[H];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_xor(reg[A], reg[H]);
         break;
     } // DONE
 
     case 0xad:{ // A = A XOR L
-        reg[A] ^= reg[L];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_xor(reg[A], reg[L]);
+        break;
+    } // DONE
+
+    case 0xae:{ // A = A XOR (HL)
+        reg[A] = z80_xor(reg[A], mem[pack(reg[H], reg[L])]);
         break;
     } // DONE
 
     case 0xaf:{ // A = A XOR A
-        reg[A] = 0;
-        reg[F] = Z_FLAG;
+        reg[A] = z80_xor(reg[A], reg[A]);
         break;
     } // DONE
 
     case 0xb0:{ // A = A OR B
-        reg[A] |= reg[B];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[B]);
         break;
     } // DONE
 
     case 0xb1:{ // A = A OR C
-        reg[A] |= reg[C];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[C]);
         break;
     } // DONE
 
     case 0xb2:{ // A = A OR D
-        reg[A] |= reg[D];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[D]);
         break;
     } // DONE
 
     case 0xb3:{ // A = A OR E
-        reg[A] |= reg[E];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[E]);
         break;
     } // DONE
 
     case 0xb4:{ // A = A OR H
-        reg[A] |= reg[H];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[H]);
         break;
     } // DONE
 
     case 0xb5:{ // A = A OR L
-        reg[A] |= reg[L];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[L]);
+        break;
+    } // DONE
+
+    case 0xb6:{ // A = A OR (HL)
+        reg[A] = z80_or(reg[A], mem[pack(reg[H], reg[L])]);
         break;
     } // DONE
 
     case 0xb7:{ // A = A OR A
-        reg[A] = reg[A] | reg[A];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], reg[A]);
+        break;
+    } // DONE
+
+    case 0xb8:{ // CP A, B
+        z80_cp(reg[A], reg[B]);
+        break;
+    } // DONE
+
+    case 0xb9:{ // CP A, C
+        z80_cp(reg[A], reg[C]);
+        break;
+    } // DONE
+
+    case 0xba:{ // CP A, D
+        z80_cp(reg[A], reg[D]);
+        break;
+    } // DONE
+
+    case 0xbb:{ // CP A, E
+        z80_cp(reg[A], reg[E]);
+        break;
+    } // DONE
+
+    case 0xbc:{ // CP A, H
+        z80_cp(reg[A], reg[H]);
+        break;
+    } // DONE
+
+    case 0xbd:{ // CP A, L
+        z80_cp(reg[A], reg[L]);
+        break;
+    } // DONE
+
+    case 0xbe:{ // CP A, (HL)
+        z80_cp(reg[A], mem[pack(reg[H], reg[L])]);
+        break;
+    } // DONE
+
+    case 0xbf:{ // CP A, A
+        z80_cp(reg[A], reg[A]);
         break;
     } // DONE
 
@@ -554,6 +611,11 @@ void cpu::execute(int opcode){
 
     case 0xe2:{ // LD (0xff00 + C), A
         mem[0xff00 + reg[C]] = reg[A];
+        break;
+    } // DONE
+
+    case 0xe6:{ // A = A AND n
+        reg[A] = z80_and(reg[A], mem[++pc]);
         break;
     } // DONE
 
@@ -580,14 +642,18 @@ void cpu::execute(int opcode){
     } // DONE
 
     case 0xf6:{ // A = A OR n
-        reg[A] |= mem[++pc];
-        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        reg[A] = z80_or(reg[A], mem[++pc]);
         break;
     } // DONE
 
     case 0xfa:{ // LD A, (nn)
         reg[A] = mem[pack(mem[pc + 1], mem[pc + 2])];
         pc += 2;
+        break;
+    } // DONE
+
+    case 0xfe:{ // CP A, n
+        z80_cp(reg[A], mem[++pc]);
         break;
     } // DONE
 

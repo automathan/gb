@@ -28,14 +28,12 @@ SOURCES += \
         mainwindow.cpp \
     src/cpu.cpp \
     src/emulator.cpp \
-    src/gpu.cpp \
-    src/romloader.cpp
+    src/gpu.cpp
 
 HEADERS += \
         mainwindow.h \
     include/cpu.h \
     include/emulator.h \
-    include/romloader.h \
     include/gpu.h
 
 FORMS += \
