@@ -11,16 +11,20 @@ enum flags {
     C_FLAG = 0x10
 };
 
-cpu::cpu(byte* memory, byte* registers){
+cpu::cpu(byte* mem, byte* reg){
     pc = 0x100;
     sp = 0xfffe;
-    this->memory = memory;
-    this->registers = registers;
+    this->mem = mem;
+    this->reg = reg;
 }
 
 void cpu::step(){
-    execute(memory[pc]);
+    execute(mem[pc]);
     ++pc; // REMEMBER TO SUBTRACT 1 FROM JUMPS TO COMPENSATE FOR THIS
+}
+
+unsigned short cpu::pack(byte lsby, byte msby){ // packs two bytes into a short, the arguments are ordered big-endian, but packed little-endian
+    return (((unsigned char)msby)<<8) | lsby;
 }
 
 unsigned short cpu::getPC(){
@@ -29,11 +33,11 @@ unsigned short cpu::getPC(){
 
 void cpu::execute(int opcode){
     // NOTES:
-    // short registers are little-endian (DE is actually E(b15-8) D(b7-0));
+    // short reg are little-endian (DE is actually E(b15-8) D(b7-0));
     // everything is little-endian
 
     // temporary ugly switchcase
-    memory[0] = 0; // used now for detecting unimplemented operations
+    mem[0] = 0; // used now for detecting unimplemented operations
 
     switch(opcode){
     case 0x00:{ // NOP
@@ -41,108 +45,118 @@ void cpu::execute(int opcode){
     } // DONE
 
     case 0x01:{ // LD BC, nn | load nn into BC (endianess???)
-        registers[B] = memory[pc + 1];
-        registers[C] = memory[pc + 2];
+        reg[B] = mem[pc + 1];
+        reg[C] = mem[pc + 2];
         pc += 2;
         break;
     }
 
-    case 0x02:{ // LD (BC), A | save val A into (BC)
-        memory[(((unsigned short)registers[C])<<8) | registers[B]] = registers[A];
+    case 0x02:{ // LD (BC), A
+        mem[pack(reg[B], reg[C])] = reg[A];
         break;
-    }
+    } // DONE
 
     case 0x04:{ // inc B
-        registers[B]++;
+        reg[B]++;
         break;
     }
 
     case 0x05:{ // dec B
-        registers[B]--;
+        reg[B]--;
         break;
     }
 
     case 0x06:{ // LD B, n
-        registers[B] = memory[++pc];
+        reg[B] = mem[++pc];
         break;
     } // DONE
 
     case 0x07:{ // RLC (Rotate Left Carry) A
-        registers[A] <<= 1;
+        reg[A] <<= 1;
 
         break;
     } // TEMP
 
+    case 0x0a:{ // LD A, (BC)
+        reg[A] = mem[pack(reg[B], reg[C])];
+        break;
+    } // DONE
+
     case 0x0C:{ // inc C
-        ++registers[C];
+        ++reg[C];
 
         break;
     }
 
     case 0x0D:{ // dec C
-        --registers[C];
+        --reg[C];
 
         break;
     }
 
     case 0x0E:{ // LD C, n
-        registers[C] = memory[++pc];
+        reg[C] = mem[++pc];
         break;
     } // DONE
 
-    case 0x12:{ // put value A into (DE)
-        memory[(((unsigned short)registers[E])<<8) | registers[D]] = registers[A];
+    case 0x12:{ // LD (DE), A
+        mem[pack(reg[D], reg[E])] = reg[A];
         break;
-    }
+    } // DONE
 
     case 0x16:{ // LD D, n
-        registers[D] = memory[++pc];
+        reg[D] = mem[++pc];
+        break;
+    } // DONE
+
+    case 0x1a:{ // LD A, (DE)
+        reg[A] = mem[pack(reg[D], reg[E])];
         break;
     } // DONE
 
     case 0x1e:{ // load n into E
-        registers[E] = memory[++pc];
+        reg[E] = mem[++pc];
         break;
     } // DONE
 
     case 0x20:{ // jump n instructions forward if Z is true
         /*if(F[Z_FLAG])
-            pc += memory[pc + 1];
+            pc += mem[pc + 1];
         else*/
         pc += 2;
         break;
     } // DONE
 
     case 0x21:{ // put value nn into HL
-        registers[H] = memory[pc + 1];
-        registers[L] = memory[pc + 2];
+        reg[H] = mem[pc + 1];
+        reg[L] = mem[pc + 2];
 
         pc += 3;
         break;
     } // DONE - could be wrong based on endianess, but since both are little, they should be compatible
 
     case 0x23:{ // HL++
-        registers[H]++;
-        if(!registers[H])
-            registers[L]++;
+        reg[H]++;
+        if(!reg[H])
+            reg[L]++;
 
         break;
     }
 
     case 0x26:{ // LD H, n
-        registers[H] = memory[++pc];
+        reg[H] = mem[++pc];
         break;
     } // DONE
 
     case 0x27:{ // DAA Decimal Adjust A
-        byte tmp = registers[A];
-        registers[A] = (tmp % 10) | (((tmp / 10) % 10) << 4);
+        byte tmp = reg[A];
+        reg[A] = (tmp % 10) | (((tmp / 10) % 10) << 4);
 
         break;
     }
 
     case 0x2e:{ // LD L, n
-        registers[L] = memory[++pc];
+        reg[L] = mem[++pc];
         break;
     } // DONE
 
@@ -153,232 +167,434 @@ void cpu::execute(int opcode){
     }
 
     case 0x3e:{ // LD A. n
-        registers[A] = memory[++pc];
+        reg[A] = mem[++pc];
+        break;
+    } // DONE
+
+    case 0x40:{ // LD B, B
+        reg[B] = reg[B];
+        break;
+    } // DONE
+
+    case 0x41:{ // LD B, C
+        reg[B] = reg[C];
+        break;
+    } // DONE
+
+    case 0x42:{ // LD B, D
+        reg[B] = reg[D];
+        break;
+    } // DONE
+
+    case 0x43:{ // LD B, E
+        reg[B] = reg[E];
+        break;
+    } // DONE
+
+    case 0x44:{ // LD B, H
+        reg[B] = reg[H];
+        break;
+    } // DONE
+
+    case 0x45:{ // LD B, L
+        reg[B] = reg[L];
+        break;
+    } // DONE
+
+    case 0x46:{ // LD B, (HL)
+        reg[B] = mem[pack(reg[H], reg[L])];
         break;
     } // DONE
 
     case 0x47:{ // LD B, A
-        registers[B] = registers[A];
+        reg[B] = reg[A];
         break;
     } // DONE
 
     case 0x4f:{ // LD C, A
-        registers[C] = registers[A];
+        reg[C] = reg[A];
+        break;
+    } // DONE
+
+    case 0x50:{ // LD D, B
+        reg[D] = reg[B];
+        break;
+    } // DONE
+
+    case 0x51:{ // LD D, C
+        reg[D] = reg[C];
+        break;
+    } // DONE
+
+    case 0x52:{ // LD D, D
+        reg[D] = reg[D];
+        break;
+    } // DONE
+
+    case 0x53:{ // LD D, E
+        reg[D] = reg[E];
+        break;
+    } // DONE
+
+    case 0x54:{ // LD D, H
+        reg[D] = reg[H];
+        break;
+    } // DONE
+
+    case 0x55:{ // LD D, L
+        reg[D] = reg[L];
+        break;
+    } // DONE
+
+    case 0x56:{ // LD D, (HL)
+        reg[D] = mem[pack(reg[H], reg[L])];
         break;
     } // DONE
 
     case 0x57:{ // LD D, A
-        registers[D] = registers[A];
+        reg[D] = reg[A];
         break;
     } // DONE
 
     case 0x5f:{ // LD E, A
-        registers[E] = registers[A];
+        reg[E] = reg[A];
+        break;
+    } // DONE
+
+    case 0x60:{ // LD H, B
+        reg[H] = reg[B];
+        break;
+    } // DONE
+
+    case 0x61:{ // LD H, C
+        reg[H] = reg[C];
+        break;
+    } // DONE
+
+    case 0x62:{ // LD H, D
+        reg[H] = reg[D];
+        break;
+    } // DONE
+
+    case 0x63:{ // LD H, E
+        reg[H] = reg[E];
+        break;
+    } // DONE
+
+    case 0x64:{ // LD H, H
+        reg[H] = reg[H];
+        break;
+    } // DONE
+
+    case 0x65:{ // LD H, L
+        reg[H] = reg[L];
+        break;
+    } // DONE
+
+    case 0x66:{ // LD H, (HL)
+        reg[H] = mem[pack(reg[H], reg[L])];
         break;
     } // DONE
 
     case 0x67:{ // LD H, A
-        registers[H] = registers[A];
+        reg[H] = reg[A];
+        break;
+    } // DONE
+
+    case 0x68:{ // LD L, B
+        reg[L] = reg[B];
+        break;
+    } // DONE
+
+    case 0x69:{ // LD L, C
+        reg[L] = reg[C];
+        break;
+    } // DONE
+
+    case 0x6a:{ // LD L, D
+        reg[L] = reg[D];
+        break;
+    } // DONE
+
+    case 0x6b:{ // LD L, E
+        reg[L] = reg[E];
+        break;
+    } // DONE
+
+    case 0x6c:{ // LD L, H
+        reg[L] = reg[H];
+        break;
+    } // DONE
+
+    case 0x6d:{ // LD L, L
+        reg[L] = reg[L];
+        break;
+    } // DONE
+
+    case 0x6e:{ // LD L, (HL)
+        reg[L] = mem[pack(reg[H], reg[L])];
         break;
     } // DONE
 
     case 0x6f:{ // LD L, A
-        registers[L] = registers[A];
+        reg[L] = reg[A];
         break;
     } // DONE
 
-    case 0x77:{
-        memory[(((unsigned short)registers[L])<<8) | registers[H]] = registers[A];
+    case 0x70:{ // LD (HL), B
+        mem[pack(reg[H], reg[L])] = reg[B];
         break;
-    }
+    } // DONE
+
+    case 0x71:{ // LD (HL), C
+        mem[pack(reg[H], reg[L])] = reg[C];
+        break;
+    } // DONE
+
+    case 0x72:{ // LD (HL), D
+        mem[pack(reg[H], reg[L])] = reg[D];
+        break;
+    } // DONE
+
+    case 0x73:{ // LD (HL), E
+        mem[pack(reg[H], reg[L])] = reg[E];
+        break;
+    } // DONE
+
+    case 0x74:{ // LD (HL), H
+        mem[pack(reg[H], reg[L])] = reg[H];
+        break;
+    } // DONE
+
+    case 0x75:{ // LD (HL), L
+        mem[pack(reg[H], reg[L])] = reg[L];
+        break;
+    } // DONE
+
+    case 0x77:{ // LD (HL), A
+        mem[pack(reg[H], reg[L])] = reg[A];
+        break;
+    } // DONE
+
+    case 0x78:{ // LD A, B
+        reg[A] = reg[B];
+        break;
+    } // DONE
+
+    case 0x79:{ // LD A, C
+        reg[A] = reg[C];
+        break;
+    } // DONE
 
     case 0x7a:{ // LD A, D
-        registers[A] = registers[D];
-
+        reg[A] = reg[D];
         break;
     } // DONE
 
-    case 0x7f:{
-        registers[A] = registers[A]; // kek
-
+    case 0x7b:{ // LD A, E
+        reg[A] = reg[E];
         break;
-    }
+    } // DONE
+
+    case 0x7c:{ // LD A, H
+        reg[A] = reg[H];
+        break;
+    } // DONE
+
+    case 0x7d:{ // LD A, L
+        reg[A] = reg[L];
+        break;
+    } // DONE
+
+    case 0x7e:{ // LD A, (HL)
+        reg[A] = mem[pack(reg[H], reg[L])];
+        break;
+    } // DONE
+
+    case 0x7f:{ // LD A, A
+        reg[A] = reg[A]; // kek
+        break;
+    } // DONE
 
     case 0xa0:{ // A = A AND B
-        registers[A] &= registers[B];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[B];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa1:{ // A = A AND C
-        registers[A] &= registers[C];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[C];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa2:{ // A = A AND D
-        registers[A] &= registers[D];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[D];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa3:{ // A = A AND E
-        registers[A] &= registers[E];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[E];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa4:{ // A = A AND H
-        registers[A] &= registers[H];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[H];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa5:{ // A = A AND L
-        registers[A] &= registers[L];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[L];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa7:{ // A = A AND A
-        registers[A] &= registers[A];
-        registers[F] = (registers[A] ? Z_FLAG : 0x00) | H_FLAG;
+        reg[A] &= reg[A];
+        reg[F] = (reg[A] ? Z_FLAG : 0x00) | H_FLAG;
         break;
     } // DONE
 
     case 0xa8:{ // A = A XOR B
-        registers[A] ^= registers[B];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= reg[B];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xa9:{ // A = A XOR C
-        registers[A] ^= registers[C];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= reg[C];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xaa:{ // A = A XOR D
-        registers[A] ^= registers[D];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= reg[D];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xab:{ // A = A XOR E
-        registers[A] ^= registers[E];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= reg[E];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xac:{ // A = A XOR H
-        registers[A] ^= registers[H];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= reg[H];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xad:{ // A = A XOR L
-        registers[A] ^= registers[L];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= reg[L];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xaf:{ // A = A XOR A
-        registers[A] = 0;
-        registers[F] = Z_FLAG;
+        reg[A] = 0;
+        reg[F] = Z_FLAG;
         break;
     } // DONE
 
     case 0xb0:{ // A = A OR B
-        registers[A] |= registers[B];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= reg[B];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xb1:{ // A = A OR C
-        registers[A] |= registers[C];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= reg[C];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xb2:{ // A = A OR D
-        registers[A] |= registers[D];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= reg[D];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xb3:{ // A = A OR E
-        registers[A] |= registers[E];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= reg[E];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
-
 
     case 0xb4:{ // A = A OR H
-        registers[A] |= registers[H];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= reg[H];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
-
     case 0xb5:{ // A = A OR L
-        registers[A] |= registers[L];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= reg[L];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xb7:{ // A = A OR A
-        registers[A] = registers[A] | registers[A];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] = reg[A] | reg[A];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xc3:{ // JP nn
-        pc = ((((unsigned short)memory[pc + 2]) << 8) | memory[pc + 1]) - 1;
+        pc = ((((unsigned short)mem[pc + 2]) << 8) | mem[pc + 1]) - 1;
         break;
     } // DONE
 
     case 0xe0:{ // LD (0xff00 + n), A
-        memory[0xff00 + memory[++pc]] = registers[A];
+        mem[0xff00 + mem[++pc]] = reg[A];
         break;
     } // DONE
 
     case 0xe2:{ // LD (0xff00 + C), A
-        memory[0xff00 + registers[C]] = registers[A];
+        mem[0xff00 + reg[C]] = reg[A];
         break;
     } // DONE
 
-    case 0xea:{
-        memory[(((unsigned short)memory[pc+2])<<8) | memory[pc+1]] = registers[A];
+    case 0xea:{ // LD (nn), A
+        mem[pack(mem[pc + 1], mem[pc + 2])] = reg[A];
         pc += 2;
         break;
-    }
+    } // DONE
 
     case 0xee:{ // A = A XOR n
-        registers[A] ^= memory[++pc];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] ^= mem[++pc];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
         break;
     } // DONE
 
     case 0xf0:{ // LD A, (0xff00 + n)
-        registers[A] = memory[0xff00 + memory[++pc]];
+        reg[A] = mem[0xff00 + mem[++pc]];
         break;
     } // DONE
 
     case 0xf2:{ // LD A, (0xff00 + C)
-        registers[A] = memory[0xff00 + registers[C]];
+        reg[A] = mem[0xff00 + reg[C]];
         break;
     } // DONE
 
     case 0xf6:{ // A = A OR n
-        registers[A] |= memory[++pc];
-        registers[F] = registers[A] ? Z_FLAG : 0x00;
+        reg[A] |= mem[++pc];
+        reg[F] = reg[A] ? Z_FLAG : 0x00;
+        break;
+    } // DONE
+
+    case 0xfa:{ // LD A, (nn)
+        reg[A] = mem[pack(mem[pc + 1], mem[pc + 2])];
+        pc += 2;
         break;
     } // DONE
 
     default:
-        memory[0] = opcode; // to signal unimplemented instructions
+        mem[0] = opcode; // to signal unimplemented instructions
         break;
     }
 
-    memory[1] = opcode;
+    mem[1] = opcode;
 }
