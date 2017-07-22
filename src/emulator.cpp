@@ -69,13 +69,22 @@ byte* emulator::getRegs(){
     return registers;
 }
 
+unsigned short emulator::getPC(){
+    return cpu->getPC();
+}
+
+unsigned short emulator::getSP(){
+    return cpu->getSP();
+}
+
+
 void emulator::step(){
     auto pc = cpu->getPC();
     cpu->step();
-    if(memory[0])
-        emit debug("0x" + QString("%1").arg(pc, 4, 16, QChar('0')) + ": unimplemented operation: " + QString::number(memory[0],16));
+    if(cpu->unimpl != -1)
+        emit debug("0x" + QString("%1").arg(pc, 4, 16, QChar('0')) + ": unimplemented operation: " + QString::number(cpu->unimpl,16));
     else
-        emit debug("0x" + QString("%1").arg(pc, 4, 16, QChar('0')) + ": valid operation: " + QString::number(memory[1],16));
+        emit debug("0x" + QString("%1").arg(pc, 4, 16, QChar('0')) + ": valid operation: " + QString::number(cpu->lastop,16));
 }
 
 std::vector<byte> emulator::getFrame(int step){

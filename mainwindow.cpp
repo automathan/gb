@@ -35,7 +35,13 @@ void MainWindow::consolePrint(QString str){
 }
 
 void MainWindow::stepCPU(){
-    emu->step();
+    int count = ui->spinb_steps->value();
+    if(count){
+        for(int i = 0; i < count; ++i)
+            emu->step();
+    }else{
+        emu->step();
+    }
     auto regs = emu->getRegs();
 
     ui->regview_f->setText("0x" + QString("%1").arg(regs[F], 2, 16, QChar('0')));
@@ -47,6 +53,9 @@ void MainWindow::stepCPU(){
     ui->regview_b->setText("0x" + QString("%1").arg(regs[B], 2, 16, QChar('0')));
     ui->regview_d->setText("0x" + QString("%1").arg(regs[D], 2, 16, QChar('0')));
     ui->regview_h->setText("0x" + QString("%1").arg(regs[H], 2, 16, QChar('0')));
+
+    ui->regview_pc->setText("0x" + QString("%1").arg(emu->getPC(), 2, 16, QChar('0')));
+    ui->regview_sp->setText("0x" + QString("%1").arg(emu->getSP(), 2, 16, QChar('0')));
 
     ui->cb_flag_z->setChecked(regs[F] & 0x80);
     ui->cb_flag_n->setChecked(regs[F] & 0x40);

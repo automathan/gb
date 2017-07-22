@@ -46,6 +46,20 @@ byte cpu::z80_and(byte a, byte b){
     return tmp;
 }
 
+inline void cpu::z80_inc(byte* ptr){
+    ++(*ptr);
+    reg[F] = (*ptr ? 0x00 : Z_FLAG)
+            |(*ptr & 0xf ? 0x00 : H_FLAG)
+            |(reg[F] & C_FLAG ? C_FLAG : 0x00);
+}
+
+inline void cpu::z80_dec(byte* ptr){
+    --(*ptr);
+    reg[F] = (*ptr ? 0x00 : Z_FLAG) | N_FLAG
+            |((*ptr & 0xf) == 0xf ? H_FLAG : 0x00)
+            |(reg[F] & C_FLAG ? C_FLAG : 0x00);
+}
+
 unsigned short cpu::pack(byte lsby, byte msby){ // packs two bytes into a short, the arguments are ordered big-endian, but packed little-endian
     return (((unsigned char)msby)<<8) | lsby;
 }
@@ -54,13 +68,16 @@ unsigned short cpu::getPC(){
     return pc;
 }
 
+unsigned short cpu::getSP(){
+    return sp;
+}
+
 void cpu::execute(int opcode){
     // NOTES:
     // short reg are little-endian (DE is actually E(b15-8) D(b7-0));
     // everything is little-endian
 
-    // temporary ugly switchcase
-    mem[0] = 0; // used now for detecting unimplemented operations
+    unimpl = -1;
 
     switch(opcode){
     case 0x00:{ // NOP
@@ -84,10 +101,10 @@ void cpu::execute(int opcode){
         break;
     }
 
-    case 0x05:{ // dec B
-        reg[B]--;
+    case 0x05:{ // DEC B
+        z80_dec(&reg[B]);
         break;
-    }
+    } // DONE
 
     case 0x06:{ // LD B, n
         reg[B] = mem[++pc];
@@ -111,11 +128,10 @@ void cpu::execute(int opcode){
         break;
     }
 
-    case 0x0D:{ // dec C
-        --reg[C];
-
+    case 0x0d:{ // DEC C
+        z80_dec(&reg[C]);
         break;
-    }
+    } // DONE
 
     case 0x0E:{ // LD C, n
         reg[C] = mem[++pc];
@@ -124,6 +140,11 @@ void cpu::execute(int opcode){
 
     case 0x12:{ // LD (DE), A
         mem[pack(reg[D], reg[E])] = reg[A];
+        break;
+    } // DONE
+
+    case 0x15:{
+        z80_dec(&reg[D]);
         break;
     } // DONE
 
@@ -143,28 +164,19 @@ void cpu::execute(int opcode){
     } // DONE
 
     case 0x20:{ // jump n instructions forward if Z is true
-        /*if(F[Z_FLAG])
-            pc += mem[pc + 1];
-        else*/
-        pc += 2;
+        if(reg[F] & Z_FLAG)
+            pc += mem[pc + 1] - 1;
+        else
+            pc += 2;
         break;
     } // DONE
 
     case 0x21:{ // put value nn into HL
         reg[H] = mem[pc + 1];
         reg[L] = mem[pc + 2];
-
-        pc += 3;
+        pc += 2;
         break;
     } // DONE - could be wrong based on endianess, but since both are little, they should be compatible
-
-    case 0x23:{ // HL++
-        reg[H]++;
-        if(!reg[H])
-            reg[L]++;
-
-        break;
-    }
 
     case 0x26:{ // LD H, n
         reg[H] = mem[++pc];
@@ -183,11 +195,10 @@ void cpu::execute(int opcode){
         break;
     } // DONE
 
-    case 0x32:{ // LDD (HL),A | Put value A into (HL), HL--;
-        // TODO
-
-        break;
-    }
+    case 0x3d:{ // DEC A
+         z80_dec(&reg[A]);
+         break;
+    } // DONE
 
     case 0x3e:{ // LD A. n
         reg[A] = mem[++pc];
@@ -658,9 +669,9 @@ void cpu::execute(int opcode){
     } // DONE
 
     default:
-        mem[0] = opcode; // to signal unimplemented instructions
+        unimpl = opcode; // to signal unimplemented instructions
         break;
     }
 
-    mem[1] = opcode;
+    lastop = opcode;
 }

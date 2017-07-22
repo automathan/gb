@@ -44,6 +44,8 @@ private:
 public:
     void step();
     unsigned char* getRegs();
+    unsigned short getPC();
+    unsigned short getSP();
     void play(const char*);
     std::vector<unsigned char> getFrame(int);
 signals:
